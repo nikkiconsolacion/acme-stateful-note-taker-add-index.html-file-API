@@ -54,24 +54,49 @@
       }
 
       const NotesNArchive =({props, notes, yn}) => {
-        console.log('notes', notes)
-        const filtered = notes.filter( note => note.archived === true );
+         console.log('notes', notes)
+        const filtered = notes.filter( note => note.archived === yn );
         return(
           <div>
             <ul>
             {
-              filtered.map( note => <li key={ note.id }>{ note.text }</li>)
+              filtered.map( note =>
+                <li key={ note.id }>
+                  { note.text }
+                  <div>
+                    <button>archive</button>
+                    <button onClick={ onDelete }>destroy</button>
+                  </div>
+                </li>)
             }
             </ul>
           </div>
         )
       }
 
-      // const Create = ({}) => {
-      //   return (
-      //     <form></form>
-      //   )
-      // }
+      class Create extends Component{
+        constructor(){
+          super();
+          this.state = {
+            note: ''
+          }
+
+        }
+        create = () => {
+          this.props.onCreate(this.state.note)
+        }
+        render(){
+          const { note } = this.state;
+          return (
+            <div>
+              <form onSubmit={ ev => ev.preventDefault() } >
+                <input name='note' value={ note } onChange={ ev => this.setState({ note: ev.target.value })}/>
+                <button onClick={ this.create }>Create</button>
+              </form>
+            </div>
+          )
+        }
+      }
 
       class App extends Component{
         constructor(){
@@ -80,6 +105,18 @@
             user: {},
             notes: [['pick up milk', true],['stop russia', false]]
           }
+          this.onCreate = this.onCreate.bind(this);
+        }
+
+        async onCreate(note){
+          console.log(note)
+          const notes = (await axios.post(`${API}/users/${this.state.user.id}/notes`, { archived: false, text: note })).data;
+
+          this.setState({ notes });
+        }
+        async onDelete(note){
+          const notes = (await axios.delete(`${API}/users/${this.state.user.id}/notes/${note.id}`)).data;
+          this.setState({ notes });
         }
 
         async componentDidMount(){
@@ -93,12 +130,16 @@
         render(){
           //console.log(this.state)
           const { user, archive, notes } = this.state;
+          const { onCreate } = this;
           return (
 
             <HashRouter>
               <Route render={(props)=> <Nav {...props} user = { user }/>} />
-              <Route path='/notes'   render={(props)=> <NotesNArchive {...props} notes = { notes } yn = { false }/>} />
-              <Route path='/archive' render={(props)=> <NotesNArchive {...props} notes = { notes } yn = { true  }/>} />
+              <Switch>
+                <Route path='/notes'   render={(props)=> <NotesNArchive {...props} notes = { notes } yn = { false }/>} />
+                <Route path='/archive' render={(props)=> <NotesNArchive {...props} notes = { notes } yn = { true  }/>} />
+                <Route path='/create' render={(props)=> <Create {...props} onCreate={ onCreate } /> } />
+              </Switch>
             </HashRouter>
           )
         }
