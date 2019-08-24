@@ -11,6 +11,68 @@
   <body>
     <div id="root"></div>
     <script type='text/babel'>
+      const root = document.querySelector('#root');
+      const { Component } = React;
+      const { render } = ReactDOM;
+      const { HashRouter, Route, Switch, Redirect, Link, NavLink } = ReactRouterDOM;
+
+      const API = 'https://acme-users-api-rev.herokuapp.com/api';
+
+      const fetchUser = async ()=> {
+        const storage = window.localStorage;
+        const userId = storage.getItem('userId');
+        if(userId){
+          try {
+            return (await axios.get(`${API}/users/detail/${userId}`)).data;
+          }
+          catch(ex){
+            storage.removeItem('userId');
+            return fetchUser();
+          }
+        }
+        const user = (await axios.get(`${API}/users/random`)).data;
+        storage.setItem('userId', user.id);
+        return user;
+      };
+
+      const Nav = (props)=> {
+        return (
+          <div>
+            <h1>Acme Note taker for </h1>
+            <div id='nav'>
+              <Link to='/notes'>Notes</Link>
+              <Link to='/archive'>Archive</Link>
+              <Link to='/create'>Create</Link>
+            </div>
+          </div>
+        )
+      }
+
+      class App extends Component{
+        constructor(){
+          super();
+          this.state = {
+            user: {},
+            archive: [''],
+            notes: ['']
+          }
+        }
+        async componentDidMount(){
+          const user = (await axios.get('https://acme-users-api-rev.herokuapp.com/api/users/random')).data;
+          console.log(user)
+
+        }
+        render(){
+          const { user, archive, notes } = this.state;
+          return (
+
+            <HashRouter>
+              <Route render={(props)=> <Nav />} />
+            </HashRouter>
+          )
+        }
+      }
+      render(<App />, root)
     </script>
   </body>
 </html>
