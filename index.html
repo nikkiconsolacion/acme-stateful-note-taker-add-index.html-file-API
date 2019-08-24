@@ -6,6 +6,10 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/react-router-dom/5.0.1/react-router-dom.min.js"></script>
     <style>
+      #nav {
+        display: flex;
+        justify-content: space-around;
+      }
     </style>
   </head>
   <body>
@@ -35,10 +39,11 @@
         return user;
       };
 
-      const Nav = (props)=> {
+      const Nav = ({ user })=> {
+
         return (
           <div>
-            <h1>Acme Note taker for </h1>
+            <h1>Acme Note taker for { user.fullName } </h1>
             <div id='nav'>
               <Link to='/notes'>Notes</Link>
               <Link to='/archive'>Archive</Link>
@@ -60,14 +65,14 @@
         async componentDidMount(){
           const user = (await axios.get('https://acme-users-api-rev.herokuapp.com/api/users/random')).data;
           console.log(user)
-
+          this.setState({ user})
         }
         render(){
           const { user, archive, notes } = this.state;
           return (
 
             <HashRouter>
-              <Route render={(props)=> <Nav />} />
+              <Route render={()=> <Nav user={ user }/>} />
             </HashRouter>
           )
         }
