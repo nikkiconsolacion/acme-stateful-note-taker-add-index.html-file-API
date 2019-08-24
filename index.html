@@ -54,10 +54,15 @@
       }
 
       const NotesNArchive =({props, notes, yn}) => {
-        console.log(notes)
+        console.log('notes', notes)
+        const filtered = notes.filter( note => note.archived === true );
         return(
           <div>
-            <hr/>
+            <ul>
+            {
+              filtered.map( note => <li key={ note.id }>{ note.text }</li>)
+            }
+            </ul>
           </div>
         )
       }
@@ -86,7 +91,7 @@
         }
 
         render(){
-          console.log(this.state)
+          //console.log(this.state)
           const { user, archive, notes } = this.state;
           return (
 
@@ -103,4 +108,3 @@
     </script>
   </body>
   </html>
-  
