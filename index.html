@@ -40,7 +40,7 @@
         return user;
       };
 
-      const Nav = ({ user })=> {
+      const Nav = ({props, user })=> {
         return (
           <div>
             <h1>Acme Note taker for { user.fullName } </h1>
@@ -53,11 +53,20 @@
         )
       }
 
-      const Create = ({}) => {
-        return (
-          <form></form>
+      const NotesNArchive =({props, notes, yn}) => {
+        console.log(notes)
+        return(
+          <div>
+            <hr/>
+          </div>
         )
       }
+
+      // const Create = ({}) => {
+      //   return (
+      //     <form></form>
+      //   )
+      // }
 
       class App extends Component{
         constructor(){
@@ -82,12 +91,16 @@
           return (
 
             <HashRouter>
-              <Route render={(props)=> <Nav user={ user }/>} />
+              <Route render={(props)=> <Nav {...props} user = { user }/>} />
+              <Route path='/notes'   render={(props)=> <NotesNArchive {...props} notes = { notes } yn = { false }/>} />
+              <Route path='/archive' render={(props)=> <NotesNArchive {...props} notes = { notes } yn = { true  }/>} />
             </HashRouter>
           )
         }
       }
-      render(<App />, root)
+    //<Route path='/create'  render={(props)=>                  } />
+    render(<App />, root)
     </script>
   </body>
-</html>
+  </html>
+  
