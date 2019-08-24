@@ -40,21 +40,22 @@
         return user;
       };
 
-      const Nav = ({props, user })=> {
+      const Nav = ({props, user, notes })=> {
+        const archiveFiltered = notes.filter( note => note.archived);
         return (
           <div>
             <h1>Acme Note taker for { user.fullName } </h1>
             <div id='nav'>
-              <Link to='/notes'>Notes</Link>
-              <Link to='/archive'>Archive</Link>
+              <Link to='/notes'>Notes ({ notes.length - archiveFiltered.length })</Link>
+              <Link to='/archive'>Archive ({ archiveFiltered.length })</Link>
               <Link to='/create'>Create</Link>
             </div>
           </div>
         )
       }
 
-      const NotesNArchive =({props, notes, yn}) => {
-         console.log('notes', notes)
+      const NotesNArchive =({props, notes, yn, onDelete, onArchive }) => {
+        //console.log('notes', notes)
         const filtered = notes.filter( note => note.archived === yn );
         return(
           <div>
@@ -64,8 +65,8 @@
                 <li key={ note.id }>
                   { note.text }
                   <div>
-                    <button>archive</button>
-                    <button onClick={ onDelete }>destroy</button>
+                    <button onClick={()=> onArchive(note)}>archive</button>
+                    <button onClick={ ()=> onDelete(note) }>destroy</button>
                   </div>
                 </li>)
             }
@@ -106,45 +107,59 @@
             notes: [['pick up milk', true],['stop russia', false]]
           }
           this.onCreate = this.onCreate.bind(this);
+          this.onDelete = this.onDelete.bind(this);
+          this.onArchive = this.onArchive.bind(this);
         }
 
         async onCreate(note){
-          console.log(note)
+          //console.log(note)
           const notes = (await axios.post(`${API}/users/${this.state.user.id}/notes`, { archived: false, text: note })).data;
-
-          this.setState({ notes });
+          console.log(notes);
+          this.setState({ notes: [...this.state.notes, notes] });
         }
+
         async onDelete(note){
-          const notes = (await axios.delete(`${API}/users/${this.state.user.id}/notes/${note.id}`)).data;
-          this.setState({ notes });
+          await axios.delete(`${API}/users/${this.state.user.id}/notes/${note.id}`);
+          const deleted = this.state.notes.filter( _note => _note.id !== note.id)
+          this.setState({ notes: deleted });
+        }
+
+        async onArchive(note){
+          const payload = {
+            archived: !note.archived,
+            text: note.text
+            }
+          const notes = (await axios.put(`${API}/users/${this.state.user.id}/notes/${note.id}`, payload)).data;
+          const updated = this.state.notes.map( note => {
+            return note.id === notes.id ? notes : note
+          })
+          this.setState({ notes: updated })
         }
 
         async componentDidMount(){
           const user = await fetchUser();
-          //console.log(user)
-          const notes = (await axios.get(API + '/users/' + user.id + '/notes')).data
-          //console.log(notes)
-          this.setState({user, notes})
+          const notes = (await axios.get(`${API}/users/${user.id}/notes`)).data;
+          this.setState({user, notes});
         }
 
         render(){
           //console.log(this.state)
           const { user, archive, notes } = this.state;
-          const { onCreate } = this;
+          const { onCreate, onDelete, onArchive } = this;
           return (
 
             <HashRouter>
-              <Route render={(props)=> <Nav {...props} user = { user }/>} />
+              <Route render={(props)=> <Nav {...props} user = { user } notes={ notes } />} />
               <Switch>
-                <Route path='/notes'   render={(props)=> <NotesNArchive {...props} notes = { notes } yn = { false }/>} />
-                <Route path='/archive' render={(props)=> <NotesNArchive {...props} notes = { notes } yn = { true  }/>} />
+                <Route path='/notes'   render={(props)=> <NotesNArchive {...props} notes = { notes } yn = { false } onDelete={ onDelete } onArchive={ onArchive } />} />
+                <Route path='/archive' render={(props)=> <NotesNArchive {...props} notes = { notes } yn = { true  } onDelete={ onDelete } onArchive={ onArchive }/>} />
                 <Route path='/create' render={(props)=> <Create {...props} onCreate={ onCreate } /> } />
               </Switch>
             </HashRouter>
           )
         }
       }
-    //<Route path='/create'  render={(props)=>                  } />
+
     render(<App />, root)
     </script>
   </body>
