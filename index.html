@@ -9,6 +9,7 @@
       #nav {
         display: flex;
         justify-content: space-around;
+        background-color:mediumorchid;
       }
     </style>
   </head>
@@ -40,7 +41,6 @@
       };
 
       const Nav = ({ user })=> {
-
         return (
           <div>
             <h1>Acme Note taker for { user.fullName } </h1>
@@ -53,26 +53,36 @@
         )
       }
 
+      const Create = ({}) => {
+        return (
+          <form></form>
+        )
+      }
+
       class App extends Component{
         constructor(){
           super();
           this.state = {
             user: {},
-            archive: [''],
-            notes: ['']
+            notes: [['pick up milk', true],['stop russia', false]]
           }
         }
+
         async componentDidMount(){
-          const user = (await axios.get('https://acme-users-api-rev.herokuapp.com/api/users/random')).data;
-          console.log(user)
-          this.setState({ user})
+          const user = await fetchUser();
+          //console.log(user)
+          const notes = (await axios.get(API + '/users/' + user.id + '/notes')).data
+          //console.log(notes)
+          this.setState({user, notes})
         }
+
         render(){
+          console.log(this.state)
           const { user, archive, notes } = this.state;
           return (
 
             <HashRouter>
-              <Route render={()=> <Nav user={ user }/>} />
+              <Route render={(props)=> <Nav user={ user }/>} />
             </HashRouter>
           )
         }
